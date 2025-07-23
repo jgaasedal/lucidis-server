@@ -1,10 +1,10 @@
 from flask import Flask, request, jsonify
-import openai
+from openai import OpenAI
 import os
 
 app = Flask(__name__)
 
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+client = OpenAI()
 MAX_QUESTIONS = 10
 sessions = {}
 
@@ -21,7 +21,7 @@ def chat():
 
     system_prompt = f"Remaining questions: {remaining}\nHusk: hvis Remaining questions = 0, sig 'Din spørgekvote er opbrugt. Kontakt administratoren.'"
 
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-4o",
         messages=[
             {"role": "system", "content": system_prompt},
@@ -29,7 +29,7 @@ def chat():
         ]
     )
 
-    reply = response['choices'][0]['message']['content']
+    reply = response.choices[0].message.content
     sessions[session_id] = remaining - 1
 
     return jsonify({"response": reply, "remaining": sessions[session_id]})
